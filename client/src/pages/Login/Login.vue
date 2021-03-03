@@ -6,12 +6,12 @@
             <img src="./images/login.png" alt="" width="150">
           </div>
           <div class="login-content">
-            <el-form :label-position="labelPosition" label-width="80px" :model="formLabelAlign">
+            <el-form :label-position="labelPosition" label-width="80px" v-model="loginForm">
               <div class="login-message">
-                  <input type="text" @click="user" v-model="formLabelAlign.email"  placeholder="账号">
+                  <input type="text" v-model="loginForm.us"  placeholder="账号">
               </div>
               <div class="login-password">
-                  <input type="passwod"  @click="password" v-model="formLabelAlign.password"  placeholder="密码">
+                  <input type="passwod"   v-model="loginForm.ps"  placeholder="密码">
               </div>
              
               <button class="login-submit" @click="login">登录</button>  
@@ -22,6 +22,7 @@
       </div>
     </div>
     <!--App -->
+    
 </template>
 
 <script>
@@ -31,10 +32,11 @@
       data(){
         return{
           labelPosition: 'right',
-          formLabelAlign: {
-          email: '',
-          password: '',
+          loginForm:{
+            us:'',
+            ps:'',
           },
+          
           dynamicValidateForm: {
           domains: [{
             value: ''
@@ -44,39 +46,57 @@
       },
       
         methods: {
-            user() {
-                axios.post("/user").then(res => {
-                    if (res.data) {
-                        this.formLabelAlign.email=res.data.email;
-                        localStorage.setItem('this.formLabelAlign.email',JSON.stringify(res.data.email));
+            // user() {
+            //     axios.post("/user").then(res => {
+            //         if (res.data) {
+            //             this.formLabelAlign.email=res.data.email;
+            //             localStorage.setItem('this.formLabelAlign.email',JSON.stringify(res.data.email));
     
-                    }
-                })
-            },
-            password() {
-                axios.post("/password").then(response => {
-                    if (response.data) {
-                        this.formLabelAlign.password=response.data.password;
-                         localStorage.setItem('this.formLabelAlign.password',JSON.stringify(response.data.password));
-                    }
-                })
-            },
+            //         }
+            //     })
+            // },
+            // password() {
+            //     axios.post("/password").then(response => {
+            //         if (response.data) {
+            //             this.formLabelAlign.password=response.data.password;
+            //              localStorage.setItem('this.formLabelAlign.password',JSON.stringify(response.data.password));
+            //         }
+            //     })
+            // },
            login(){
-             if(!this.formLabelAlign.email){
-               alert('邮箱不能为空')
-            //  }else if(!this.formLabelAlign.password){
-            //    alert('密码不能为空')
-             }else{
-                this.$router.push('/Home')
+             let user=this.loginForm;
+             let formData={
+               us:user.us,
+               ps:user.ps
              }
+             if(user.us===''|| user.ps===''){
+               alert('账号或密码不能为空')
+             }else{
+                const myUrl="http://localhost:3000/user/login"
+                this.$axios({
+                  method:'post',
+                  url:myUrl,
+                  data:formData
+                }).then(res=>{
+                  if(res.data.err==-2||res.data.err==-1){
+                  this.$alert(res.data.msg)
+                  }else{
+                     this.$router.push('/')
+                     this.formData=res.config.data
+                     localStorage.setItem('formData',JSON.stringify(res.config.data));
+                     console.log(res)
+                     return false;
+                  }
+                })
+             }
+            
+            
            }
         },
       mounted(){
-        var data1 =  JSON.parse(localStorage.getItem('this.formLabelAlign.email'));
-        var data2 =  JSON.parse(localStorage.getItem('this.formLabelAlign.password'));
-        if(data1&&data2!=null){
-          this.formLabelAlign.email= data1;
-          this.formLabelAlign.password=data2;
+        var data1 =  JSON.parse(localStorage.getItem('formData'));
+        if(data1!=null){
+          this.formData=data1;
           console.log(data1)
         }
       }

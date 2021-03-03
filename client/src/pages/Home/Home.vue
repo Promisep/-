@@ -27,10 +27,13 @@
                 <el-menu-item index="5" >女装</el-menu-item>
                 <el-menu-item index="6" >男装</el-menu-item>
                 <el-menu-item index="7"><a href="https://www.ele.me" target="_blank">美妆</a></el-menu-item>
-                <el-menu-item ><a href="./Login/Login" >请登录</a></el-menu-item>
-                <el-menu-item ><a href="javascript:;" v-if="this.formLabelAlign">{{this.formLabelAlign.email}}</a></el-menu-item>
-                
+                <el-menu-item >
+                  <router-link v-show="!user.us" to="/login">登录</router-link>
+                </el-menu-item>    
             </el-menu>
+             <el-card class="box-card">
+              <p>Hello {{user.us}}</p>
+            </el-card>
             <!-- 轮播图 -->
              <el-carousel indicator-position="outside">
                 <el-carousel-item  v-for="item in swiperList" >
@@ -61,10 +64,6 @@
 </template>
 <script>
   export default {
-    props:{
-      formLabelAlign:{
-       }
-      },
    data() {
       return {
         activeIndex: '1',
@@ -73,6 +72,9 @@
          // 楼层
         floorList:[],
         path:'',
+         user:{
+          us:''
+        },
         nav_menu_data:[
           {
             title:'女装/男装/内衣',
@@ -110,6 +112,26 @@
          },
         ] 
       };
+    },
+    beforeCreate(){
+        this.$axios.get('/user')
+        .then(res => {
+          console.log(res)
+          console.dir(res.data)
+          if (res.data.error) {
+            this.$message.error(res.data.error);
+            this.user.us = null;
+            return false;
+          }else{
+            let user = localStorage.getItem('user');
+            if (user) {
+              this.user.us = user;
+            }
+          }
+        })
+        .catch(err => {
+            this.$message.error(`${err.message}`)
+        })
     },
     mounted(){
        this.getSwiperList();
