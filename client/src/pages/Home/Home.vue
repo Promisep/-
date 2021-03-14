@@ -27,21 +27,30 @@
                 <el-menu-item index="5" >女装</el-menu-item>
                 <el-menu-item index="6" >男装</el-menu-item>
                 <el-menu-item index="7"><a href="https://www.ele.me" target="_blank">美妆</a></el-menu-item>
-                <el-menu-item >
-                  <router-link v-show="!user.us" to="/login">登录</router-link>
-                </el-menu-item>    
+                <el-submenu index="8">
+                   <template slot="title"  v-if="!showname"><router-link  to="/login">登录</router-link></template>
+                   <template slot="title" v-else>{{user}}</template>
+                  <div v-for="(item5, index) in nav_menu_data3">
+                      <el-menu-item :index="item5.path" :key="index">{{item5.title}}</el-menu-item>
+                  </div>
+                  <el-popover
+                    placement="top"
+                    width="160"
+                    v-model="visible">
+                    <p>您确定要退出吗？</p>
+                    <div style="text-align: right; margin: 0">
+                      <el-button  size="mini" type="text" @click="visible = false">取消</el-button>
+                      <el-button type="primary" size="mini" @click="visible = false">确定</el-button>
+                    </div>
+                    <el-button slot="reference" @click="loginout()">退出登录</el-button>
+                  </el-popover>
+
+                </el-submenu>    
             </el-menu>
-             <el-card class="box-card">
-              <p>Hello {{user.us}}</p>
-            </el-card>
-            <!-- 轮播图 -->
-             <el-carousel indicator-position="outside">
-                <el-carousel-item  v-for="item in swiperList" >
-                  <img :src="item.image_src">
-                </el-carousel-item>
-            </el-carousel>
+            <!-- 轮播图 -->    
+            <Swiper :id="swiperList.goods_id" :swiperList="swiperList"></Swiper>
             <!-- 每日必看 -->
-            <div class="hot-sale-operation">
+            <div class="hot-sale-operation" @click="goFloor()">
                 <div class="hot-sale-title">
                     <img src="//a.vpimg2.com/upload/flow/2018/08/17/154/15344789862278.jpg">
                 </div>
@@ -50,11 +59,11 @@
                        <img :src="item1.floor_title.image_src" >
                        <!-- <img data-lzsrc="data-lzsrc" class="ltart-clkable" src="//h2.appsimg.com/b.appsimg.com/upload/momin/2020/12/14/86/1607914975921_1200x684_90.jpg" > -->
                      </div>
-                     <div class="content">
-                       <navigator v-for="item2 in item1.product_list" >
+                     <div class="content" >
+                       <div class="main" v-for="item2 in item1.product_list" >
                          <img :src="item2.image_src" >
                           <router-view></router-view>
-                       </navigator>
+                       </div>
                      </div>
                 </div>
             </div>
@@ -63,18 +72,24 @@
    
 </template>
 <script>
+import Swiper from './Swiper'
   export default {
+    components:{Swiper},
    data() {
       return {
         activeIndex: '1',
         activeIndex2: '1',
-        swiperList:[],
+        swiperList:[{
+          goods_id:'',
+          msgurl:''
+        }
+        ],
          // 楼层
         floorList:[],
         path:'',
-         user:{
-          us:''
-        },
+        showname:false,
+        user:'',
+        visible: false,
         nav_menu_data:[
           {
             title:'女装/男装/内衣',
@@ -109,57 +124,62 @@
           {
            title:'选项1',
            path:'./Navgate/page1'
-         },
-        ] 
+         }
+        ] ,
+         nav_menu_data3:[
+           {
+            title:'个人中心',
+            path:'./Navgate/page1'
+           },
+            {
+            title:'个人中心',
+            path:'./Navgate/page1'
+           }  
+         ]
+           
+         
       };
     },
-    beforeCreate(){
-        this.$axios.get('/user')
-        .then(res => {
-          console.log(res)
-          console.dir(res.data)
-          if (res.data.error) {
-            this.$message.error(res.data.error);
-            this.user.us = null;
-            return false;
-          }else{
-            let user = localStorage.getItem('user');
-            if (user) {
-              this.user.us = user;
-            }
-          }
-        })
-        .catch(err => {
-            this.$message.error(`${err.message}`)
-        })
-    },
     mounted(){
+      let data=JSON.parse(localStorage.getItem('formData'))
+      if(data!=null){
+        this.user=data;
+        console.log(this.user)
+        this.showname=true
+      }else{
+        this.showname=false
+      }
        this.getSwiperList();
        this.getFloorList();
     },
     methods: {
+      loginout(){    
+         localStorage.removeItem('formData'); 
+         this.showname=false
+        
+      },
       handleSelect(key, keyPath) {
         console.log(key, keyPath);
       },
-      getSwiperList(){
-        const myUrl='https://api-hmugo-web.itheima.net/api/public/v1/home/swiperdata'
-        this.$axios.get(myUrl,{
-           headers:{
-             'Content-Type':'application/json'
-           }
+     getSwiperList(){
+        this.$axios.get('http://localhost:3000/homesual/getSwiperList',
+        {headers:{'Content-Type':'application/json'}
         }).then(res=>{
-          this.swiperList=res.data.message;
-          console.log(res.data.message)
+          this.swiperList=res.data.msg;
+          console.log(res.data.msg)
         })
        },
+       goFloor(){
+         this.$router.resolve({name:"goods",query:{id:this.id}})
+       },
        getFloorList(){
-         this.$axios.get('https://api-hmugo-web.itheima.net/api/public/v1/home/floordata',{
+         this.$axios.get('http://localhost:3000/floordata/getFloorList',{
             headers:{
              'Content-Type':'application/json'
            }
          }).then(res=>{
-          this.floorList=res.data.message;
-          console.log(res.data.message)
+          this.floorList=res.data.msg;
+          console.log(res.data.msg)
         })
        }
     }
@@ -225,11 +245,11 @@
 .hot-sale-content .content {
   overflow: hidden;
 }
-.hot-sale-content.content navigator {
+.main {
   float: left;
   width: 33.33%;
 }
-.hot-sale-content .content navigator image {
+.hot-sale-content .content.main image {
   width: 100%;
 }
 

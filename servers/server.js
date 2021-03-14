@@ -8,7 +8,7 @@ const mongoose = require('mongoose')
   
 // const MongoStore = require('connect-mongo')(session);
 
-const index = require('./server/router/index') // localhost:3000/
+const index = require('../server/router/index') // localhost:3000/
 // session机制的user
 const user = require('./server/router/user')
 

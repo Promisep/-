@@ -6,8 +6,12 @@ import router from './router'
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 
+import store from './store/index'
+
 import Navigation from 'vue-navigation'     
-import axios from 'axios';   
+import axios from 'axios';  
+
+
 Vue.use(Navigation, {router});
 Vue.prototype.$axios = axios;
 Vue.config.productionTip = false

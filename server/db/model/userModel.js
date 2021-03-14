@@ -4,6 +4,7 @@ const mongoose=require('mongoose')
 var userSchema = new mongoose.Schema({
     us: {type:String,required:true},
     ps: {type:String,required:true},
+    token:String
     // age: Number,
     // sex:{type:Number,default: 0 }
   });
